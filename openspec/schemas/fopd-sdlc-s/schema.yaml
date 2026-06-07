@@ -1,0 +1,30 @@
+name: fopd-sdlc-s
+version: 1
+description: >
+  小型變更的輕量流程。適用於 typo 修正、CSS 微調、config 變更、簡單 bug fix 等。
+  流程：tasks → apply。
+
+artifacts:
+  - id: tasks
+    generates: tasks.md
+    description: 待辦事項清單
+    template: tasks.md
+    instruction: |
+      直接列出要做的事項。每個任務用 `- [ ] 任務描述` 格式。
+
+      不需要分組，簡潔明瞭即可。小型變更通常只有 1-5 個任務。
+
+      範例：
+      - [ ] 修正首頁標題的錯字
+      - [ ] 將按鈕顏色從 #333 改為 #555
+      - [ ] 更新 config.yaml 中的 timeout 設定
+    requires: []
+
+apply:
+  requires:
+    - tasks
+  tracks: tasks.md
+  instruction: |
+    閱讀任務清單，依序完成，完成後將核取方塊從 `- [ ]` 改為 `- [x]`。
+
+    小型變更不需要 git worktree 或 subagent，直接在當前工作區操作即可。

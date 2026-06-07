@@ -195,272 +195,139 @@ artifacts:
 
   - id: verify
     generates: verify.md
-    description: Post-implementation verification against specs, design, and tasks
+    description: Pre-implementation peer review by PM and Architect
     template: verify.md
     instruction: |
-      PRECHECK — implementation evidence:
-      Before producing verify.md, run BOTH commands. If either
-      returns 0, STOP and tell the user that apply phase has not
-      yet produced reviewable changes.
+      Produce verify.md by gathering peer reviews from two perspectives.
 
-      1. Commit evidence (must return > 0):
-         git log --oneline $(git merge-base HEAD origin/main 2>/dev/null || git merge-base HEAD origin/master 2>/dev/null)..HEAD | wc -l
+      1. **Collect required documents**:
+         Read these 4 files from openspec/changes/<change-name>/:
+         - proposal.md (what we're building and why)
+         - design.md (technical approach)
+         - tasks.md (implementation checklist)
+         - plan.md (micro-task breakdown)
 
-      2. Task progress (must return > 0):
-         grep -c '^- \[x\]' openspec/changes/<change-name>/tasks.md
+      2. **Dispatch parallel reviews**:
+         Create TWO review requests using Agent subagents:
 
-      Only after BOTH return positive numbers, proceed to invoke
-      the verification skill below.
+         ### PM Review (tasks + plan)
+         Launch an agent with description "PM review tasks/plan" and:
+         - Prompt: "You are a senior PM reviewing this change.
+           Read the tasks.md and plan.md files provided.
+           Evaluate:
+           1. Are tasks complete and well-scoped?
+           2. Does the plan reflect achievable milestones?
+           3. Any gaps between proposal goals and execution?
+           Provide bullet feedback."
+         - Pass tasks.md and plan.md content in the prompt
 
-      Use the Skill tool to invoke **openspec-verify-change** (the
-      `/opsx:verify` slash command is its user-facing equivalent).
+         ### Architect Review (design + proposal)
+         Launch an agent with description "Architect review design/proposal" and:
+         - Prompt: "You are a senior architect reviewing this change.
+           Read the design.md and proposal.md files provided.
+           Evaluate:
+           1. Are technical decisions sound and justified?
+           2. Does design align with proposal goals?
+           3. Any architectural risks or gaps?
+           Provide bullet feedback."
+         - Pass design.md and proposal.md content in the prompt
 
-      IMPORTANT timing note:
-      - Unlike other artifacts, verify.md is produced AFTER the apply
-        phase completes, NOT during planning. The `requires: [plan]`
-        edge exists only for schema graph purposes — the actual
-        verification step MUST run on a completed implementation.
+      3. **Compile verify.md**:
+         Write verify.md following the template structure exactly.
+         The template includes:
 
-      The verify step MUST perform the following checks and record
-      results in verify.md using the template:
+         - AI review sections (Overall Decision, PM Review, Architect Review)
+         - **Human Approval Gate** section (between HUMAN_APPROVAL_GATE:START
+           and HUMAN_APPROVAL_GATE:END comments)
+           — DO NOT fill in this section yourself. It must remain
+           all unchecked. Only the human user can check these boxes.
 
-      1. **Structural validation**: Run `openspec validate --all --json`
-         in the repository root and confirm every item returns
-         `"valid": true`. If any item fails, record the issues and
-         return to fix the underlying artifact before proceeding.
+      4. **Stop and wait for human decision**:
+         After writing verify.md, you MUST:
+         - Present the full review report to the user
+         - Explicitly tell the user they need to check a box in the
+           "Human Approval Gate" section
+         - **Stop all further actions** and wait for user response
+         - NEVER check the approval boxes yourself
+         - NEVER proceed to apply before user approval
 
-      2. **Task completion**: Confirm every checkbox in tasks.md is
-         `- [x]`. For any `- [ ]` remaining, document the reason
-         (e.g. manual / out-of-scope / blocked) and whether it blocks
-         archive.
-
-      3. **Delta spec sync state**: For each directory under
-         `openspec/changes/<name>/specs/`, compare against the
-         corresponding `openspec/specs/<capability>/spec.md` and
-         record one of:
-         - ✓ Already synced
-         - ✗ Needs sync (list the capabilities)
-         - N/A (no delta specs produced)
-
-      4. **Design/specs coherence**: Spot-check that design.md
-         decisions reference or align with the requirements listed
-         in specs/. Record any drift as a warning (non-blocking).
-
-      5. **Implementation signal**: Confirm all code changes are
-         committed (no unstaged files in the worktree). Cite the
-         commit range if known.
-
-      6. **Front-door routing leak detector** (warning, non-blocking):
-
-         For projects using superpowers-bridge, PRD output
-         should never land in `tasks/prd-*.md` — the
-         prd artifact's output redirection (see this
-         schema's prd.instruction) routes it to
-         `openspec/changes/<name>/prd.md`. Run:
-
-           ls tasks/prd-*.md 2>/dev/null
-
-         If any files exist, record a WARNING: "Front-door routing
-         leak — PRD output found at tasks/prd-*.md;
-         these belong in openspec/changes/<name>/prd.md.
-         Move/delete after confirming content is captured
-         in the change directory."
-
-         Non-blocking — adopters may have legitimate non-schema use
-         of that directory predating schema install. Surfaces the
-         leak so the user can decide whether to clean up.
-
-      7. **Deferred dogfood vs automated-test equivalence**:
-
-         If plan.md has any tasks marked `[~]` deferred (manual smoke /
-         dogfood / live-environment checks that weren't run in this
-         cycle), enumerate each in verify.md §7 and identify the
-         equivalent automated test that covers the same assertions.
-
-         If no equivalent automated test exists for a deferred manual
-         check, that row is a real coverage gap — record in
-         retrospective Misses with a follow-up plan, not silently
-         deferred.
-
-         The decision table makes "deferred-but-covered" vs "deferred-
-         and-gapped" visible at archive time, so reviewers can audit
-         completeness without re-deriving the rationale from plan +
-         test files.
-
-         Non-blocking on its own — Overall Decision remains PASS even
-         with identified gaps, provided they're recorded as follow-up.
-         Blocks only if §7 is empty AND plan.md has `[~]` rows (means
-         the gap analysis was skipped, not that gaps don't exist).
-
-      Verify MAY be re-run multiple times as the implementation is
-      refined — each run overwrites verify.md with current state.
-
-      If `openspec-verify-change` skill is unavailable, fall back to
-      running the numbered checks above manually and recording results
-      in verify.md.
+      Repeat if reviewer recommends revision until both approve.
     requires:
       - plan
 
   - id: retrospective
     generates: retrospective.md
-    description: Evidence-first retrospective of completed change
+    description: >
+      Post-implementation review recording wins, misses, plan
+      deviations, and long-term learning candidates.
+      PRECHECK: commit count > 0 and tasks.md has checked items
+      (`- [x]`). If PRECHECK fails, STOP and inform user that
+      at least one implementation task must be completed first.
     template: retrospective.md
     instruction: |
-      PRECHECK — verify completion evidence:
-      Before producing retrospective.md, run these commands. If
-      either fails, STOP and tell the user verify must pass first.
+      PRECHECK — before writing the retrospective, confirm:
+      1. `git log` shows at least one new commit (from apply phase)
+      2. tasks.md has at least one `- [x]` checked task
+      If PRECHECK fails, STOP and tell the user to complete
+      implementation first.
 
-      1. verify.md exists:
-         test -f openspec/changes/<change-name>/verify.md
+      Use the template (`openspec/schemas/superpowers-bridge/templates/retrospective.md`)
+      as the structural framework. Fill in each section:
 
-      2. verify.md's Overall Decision is NOT marked as FAIL.
-         The verify.md template has 3 mutually-exclusive checkboxes
-         in its "Overall Decision" section: "✅ PASS", "⚠️ PASS WITH
-         WARNINGS", "❌ FAIL". Only "❌ FAIL" being checked is blocking:
-         ! grep -q '^- \[x\] ❌ FAIL' openspec/changes/<change-name>/verify.md
+      1. **Evidence (§0)**:
+         - Run `git log --oneline <base>..HEAD` for commit chain
+         - Run `git diff --stat <base>..HEAD` for diff size
+         - Count `- [x]` in tasks.md
+         - Capture test coverage signal (if available)
 
-      Only after both succeed, proceed.
+      2. **Wins (§1)**: List successes with evidence citations
+         (commit hash, file, test name)
 
-      Write a retrospective of this change with evidence-first analysis.
+      3. **Misses (§2)**: Classify as 🔴 blocking, 🟡 painful,
+         📌 nit. Each with evidence. Write "none" if clean.
 
-      IMPORTANT timing note:
-      - retrospective.md is produced AFTER apply phase completes and
-        verify.md shows no blocking issues. The `requires: [verify]`
-        edge exists only for schema graph purposes; the actual
-        retrospective MUST run on a completed, verified implementation.
+      4. **Plan deviations (§3)**: Compare plan.md vs actual
+         execution; record tasks that deviated and why
 
-      Process (follow these 3 steps):
+      5. **Skill / workflow compliance (§4)**: Check each
+         Superpowers skill required by schema was used.
+         Skipped skills MUST be explained in the
+         "Deliberately Skipped Skills" subsection with:
+         what was skipped, why this cycle, how to prevent
 
-      1. **Gather evidence**
-         - Run `git log --oneline <base>..HEAD` in the change worktree
-           (or main checkout if the worktree was already merged) to
-           get the commit range
-         - Read prd.md, plan.md, tasks.md in this change
-           directory for plan-vs-actual comparison
-         - If verify.md contains failing items, address them BEFORE
-           writing the retro
+      6. **Surprises (§5)**: Assumptions that turned out wrong
 
-      2. **Write the retrospective sections** — each claim cites
-         a commit hash, file path, test name, or measurable fact.
-
-         The retrospective has §0 Evidence (quantitative front-
-         matter) plus 6 analysis sections (§1–§6). Downstream
-         analysis bullets reference §0 instead of inlining
-         `[evidence: commit X]` per line.
-
-         §0) **Evidence** — quantitative front-matter populated
-             from `git log <base>..HEAD`, `tasks.md`, and
-             verify.md: commit count, diff size (lines/files),
-             tasks-done ratio, active hours, subagent dispatch
-             count, new external dependencies, post-merge bugs,
-             OpenSpec validate state at archive, test coverage
-             signal, and a one-line commit chain.
-
-         §1) **Wins** — what worked well, with evidence
-
-         §2) **Misses** — what didn't, marked by severity:
-             - 🔴 blocking
-             - 🟡 painful
-             - 📌 nit
-
-         §3) **Plan deviations** — tasks whose scope changed, and why
-
-         §4) **Skill / workflow compliance** — list each skill in
-             this schema's apply phase; mark whether it was
-             actually used. For any ✗, fill the
-             `### Deliberately Skipped Skills` subsection per the
-             rules below.
-
-         §5) **Surprises** — assumptions that turned out wrong
-
-         §6) **Promote candidates → long-term learning** — use
-             a `- [ ]` checklist (not a flat table). Each
-             candidate:
-
-             - Title with severity emoji (🔴/🟡/📌) + one-
-               sentence learning
-             - `→ **Promote to** <destination>` (memory /
-               CLAUDE.md / schema / skill / one-off)
-             - Two body lines aligned with the feedback memory
-               schema: `> **Why**: <reason>` and
-               `> **How to apply**: <trigger condition>`
-
-             Unchecked `- [ ]` items represent in-flight
-             candidates that carry into the next cycle's retro
-             for re-evaluation. The checklist + Why/How body
-             shape lets candidates transfer mechanically to
-             `~/.claude/memory/` without re-writing.
-
-         **Skipped-skill rules for §4**:
-
-         The schema was designed with the explicit intent that
-         no apply-phase skill should be skipped — each skill is
-         in the flow for a reason. Default expectation: §4 has
-         every row marked ✓.
-
-         For any skill marked ✗, DO NOT just write a one-line
-         reason. Instead, the `### Deliberately Skipped Skills`
-         subsection must answer three questions per skipped
-         skill:
-
-         - **What was skipped**: the specific skill or sub-step
-         - **Why this cycle**: the concrete cycle condition that
-           triggered the skip. Vague reasons ("not needed", "too
-           small", "no time", "blocked by external dep", "output
-           looked off") are insufficient — name the actual trigger
-           (a specific commit hash, log line, or observed behavior).
-         - **How to prevent recurrence**: which of these the
-           next cycle in the same situation should rely on
-           instead — schema graph fix / skill description
-           tightening / CLAUDE.md trigger / scope-judgment
-           rule / explicit "one-off — schema boundary case" (the
-           last must state why it's a boundary, not just label
-           the exception).
-
-         If multiple cycles skip the same skill with similar
-         "How to prevent" answers, that pattern is a §6 Promote
-         candidate (schema / skill PR motivator). The §4
-         subsection is a feedback loop into schema maintenance —
-         it should make the next retro's subsection shorter, not
-         longer.
-
-      3. **Retrospective skipping policy** (different from §4
-         skill skipping — this is whether to write the retro at
-         all):
-
-         - Trivial single-commit fixes: OK to skip the
-           retrospective entirely. Write a one-liner reason in
-           retrospective.md (e.g. "Skipped: single-commit linter
-           fix, no insights").
-         - Anything else: produce §0 Evidence plus all 6 analysis
-           sections (a placeholder "(none observed)" is fine if
-           a section truly has nothing).
-
-      4. **Forward-pointer policy (when facts change after writing)**
-
-         Retrospective.md reflects state at write-time. If
-         subsequent cycles discover that a claim, evidence, or
-         conclusion in this retro was wrong/incomplete:
-
-         - Do NOT rewrite the retrospective (loses audit trail of
-           what was known at the time)
-         - Add a forward-pointer in the retrospective itself:
-           `> **Update YYYY-MM-DD**: section X superseded by
-           <link to follow-up retro / commit / issue>`
-         - The follow-up artifact carries the corrected analysis
-
-         Why: retrospective is evidence-based — its value is
-         capturing what was known and reasoned at a specific point.
-         Rewriting it removes that audit trail.
-
-      Write output to retrospective.md using the template structure.
+      7. **Promote candidates (§6)**: Use `- [ ]` checkboxes for
+         items promotable to memory / CLAUDE.md / schema
     requires:
       - verify
 
 apply:
-  requires: [plan]
+  requires: [plan, verify]
   tracks: tasks.md
   instruction: |
+    **⛔ Human Approval Gate Check (HIGHEST PRIORITY)**:
+
+    Before doing anything else, read verify.md and check the
+    checkbox state in the "Human Approval Gate" section
+    (between HUMAN_APPROVAL_GATE:START and HUMAN_APPROVAL_GATE:END
+    comments):
+
+    - If `✅ Approved — proceed to apply` is checked (`- [x]`)
+      → proceed
+    - If `⚠️ Conditional approval` is checked → read the user
+      notes for conditions, satisfy them before proceeding
+    - If `❌ Rejected — revision required` is checked → STOP,
+      inform the user they need to revise and re-verify
+    - If ALL checkboxes are unchecked → **STOP** and inform the
+      user: "verify.md has not received human approval and cannot
+      proceed to the apply phase. Please check a box in the
+      'Human Approval Gate' section of verify.md."
+
+    Only proceed after explicit human approval.
+
+    ---
+
     Before implementing, set up an isolated workspace and executor:
 
     0. **Pre-flight — verify required Superpowers skills**:
@@ -532,9 +399,9 @@ apply:
     4. **Retrospective (write while context is hot)**:
 
        Once verify.md shows no blocking issues, produce the
-       `retrospective` artifact BEFORE opening any PR. Run the
-       retrospective artifact's instruction (which has its own
-       PRECHECK confirming verify.md exists and is not FAIL).
+       `retrospective` artifact using its instruction.
+       Template is at
+       `openspec/schemas/superpowers-bridge/templates/retrospective.md`.
 
        Why now, not after PR: retrospective is part of this cycle's
        deliverables and should land in the same PR. Writing it after

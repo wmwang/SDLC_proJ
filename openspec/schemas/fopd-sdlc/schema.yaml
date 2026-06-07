@@ -1,0 +1,363 @@
+name: fopd-sdlc
+version: 3
+description: >
+  大型變更的完整 TDD 開發流程（L 級）。
+  整合 Superpowers 技能，適用於新增子系統、架構變更、跨模組功能等。
+  流程：proposal → specs → design → plan → verify → apply → retrospective。
+  plan 階段整合了任務清單、微任務拆解與測試案例，
+  是唯一的「做什麼 + 怎麼做 + 怎麼測」文件。
+  需求：Superpowers 技能已安裝（writing-plans、using-git-worktrees、
+  subagent-driven-development、finishing-a-development-branch）。
+  Apply 階段使用 git worktree 隔離環境 + subagent-driven-development
+  （間接啟動 test-driven-development 與 requesting-code-review）。
+  verify 階段需人類最終核准才能進入 apply。
+
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: 提案文件，說明變更的動機與範圍
+    template: proposal.md
+    instruction: |
+      建立提案文件，確立「為什麼」需要這項變更。
+
+      各段落：
+
+      - **為什麼**：1-2 句話說明問題或機會。解決什麼問題？為什麼現在要做？
+
+      - **變更內容**：條列式列出具體變更。明確說明新增的功能、修改的部分
+        或移除的項目。有破壞性變更（Breaking Changes）請標註 **BREAKING**。
+
+      - **能力範圍**：辨識哪些規格需要建立或修改：
+        - **新增能力**：列出將要引入的能力。每一項都會對應一個
+          `specs/<名稱>/spec.md`。使用 kebab-case 命名。
+        - **修改能力**：列出需求層級有變更的既有能力。只有在規格行為
+          確實改變時才列入。請先查看 `openspec/specs/` 確認既有規格名稱。
+
+      - **影響範圍**：受影響的程式碼、API、相依性或系統。
+
+      保持精簡（1-2 頁）。聚焦在「為什麼」而非「怎麼做」。
+    requires: []
+
+  - id: specs
+    generates: "specs/**/*.md"
+    description: 詳細規格文件，定義系統行為
+    template: spec.md
+    instruction: |
+      建立規格檔案，定義系統「應該做什麼」。
+
+      依據提案的「能力範圍」段落，為每一項能力建立一份規格檔。
+      - 新增能力：使用提案中的 kebab-case 名稱（specs/<能力名稱>/spec.md）。
+      - 修改能力：使用既有的資料夾名稱建立差異規格。
+
+      差異操作（使用 ## 標題）：
+      - **新增需求（ADDED Requirements）**：全新的能力
+      - **修改需求（MODIFIED Requirements）**：行為改變——必須包含完整更新內容
+      - **移除需求（REMOVED Requirements）**：廢棄功能——必須包含原因和遷移方式
+      - **更名需求（RENAMED Requirements）**：僅名稱變更——使用 FROM:/TO: 格式
+
+      格式要求：
+      - 每項需求：`### Requirement: <名稱>` 後接描述
+      - 使用「應（SHALL）」/「必須（MUST）」作為規範性要求
+      - 每個情境：`#### Scenario: <名稱>` 搭配 WHEN/THEN 格式
+      - **關鍵**：情境標題必須使用 4 個井號（`####`）
+      - 每項需求至少要有一個情境
+
+      規格應該是可測試的——每個情境就是一個潛在的測試案例。
+    requires:
+      - proposal
+
+  - id: design
+    generates: design.md
+    description: 技術設計文件，說明實作方式與可測試性考量
+    template: design.md
+    instruction: |
+      建立技術設計文件，說明「如何」實作這項變更。
+
+      何時需要 design.md（符合以下任一條件時才建立）：
+      - 跨切面變更（多個服務/模組）或新的架構模式
+      - 新的外部依賴或重大資料模型變更
+      - 安全性、效能或遷移上的複雜度
+      - 在寫程式碼之前需要先做技術決策的模糊地帶
+
+      各段落：
+
+      - **背景**：背景資訊、目前狀態、限制條件、利害關係人
+
+      - **目標 / 非目標**：這份設計要達成什麼，以及明確排除什麼
+
+      - **決策**：關鍵技術選擇及其理由（為什麼選 X 而非 Y？）。
+        每個決策都要包含考慮過的替代方案。
+
+      - **可測試性考量**：
+        - 設計如何讓程式碼容易被測試
+        - 需要的測試介面（mock/stub 邊界、依賴注入點）
+        - 建議的測試框架與工具
+
+      - **風險 / 取捨**：已知的限制、可能出問題的地方。
+        格式：[風險] → 緩解方案
+
+      - **遷移計畫**：部署步驟、回滾策略（如適用）
+
+      聚焦在架構與方法，而非逐行實作。
+      好的設計文件會解釋技術決策背後的「為什麼」。
+    requires:
+      - proposal
+
+  - id: plan
+    generates: plan.md
+    description: 整合任務清單、測試案例與 TDD 微步驟的完整實作計畫
+    template: plan.md
+    instruction: |
+      前置檢查——確認必要技能可用：
+      在呼叫前，確認 `writing-plans` 出現在你的可用技能清單中。
+      如果缺少，停止並通知使用者必須安裝所需的 Superpowers 技能
+      （或使用者可以選擇依照下方範本手動撰寫 plan.md）。
+      不要靜默地降級處理。
+
+      使用 Skill 工具呼叫 **writing-plans**。
+
+      重要——輸出路徑導向：
+      - 不要寫到 `docs/superpowers/plans/`（或任何技能預設路徑）。
+        將計畫直接寫到這個 change 的 `plan.md`。
+
+      此 plan.md 是唯一的「做什麼 + 怎麼做 + 怎麼測」文件，
+      整合了以下三個關注點：
+
+      **A. 任務清單**（取代獨立的 tasks.md）：
+      - 使用 ## 編號標題將相關任務分組
+      - 每個粗粒度任務用核取方塊：`- [ ] X.Y 任務描述`
+      - 按照依賴順序排列（什麼必須先做？）
+
+      **B. 測試案例**（取代獨立的 test-plan.md）：
+      - 每個任務群組開頭列出對應的測試案例
+      - 測試案例引用 specs 中的需求與情境
+      - 標明測試類型（單元/整合/E2E）與優先順序（P0/P1/P2）
+      - 包含測試框架、測試資料策略的簡要說明
+
+      **C. TDD 微步驟**（每個任務的實作細節）：
+      - 將每個任務拆解為 2-5 分鐘的微步驟
+      - 每個微步驟遵循 Red-Green-Refactor 格式：
+        1. 🔴 RED：寫一個最小的失敗測試
+        2. ✅ 確認測試失敗（且失敗原因正確）
+        3. 🟢 GREEN：寫最小程式碼讓測試通過
+        4. ✅ 確認測試通過
+        5. 🔵 REFACTOR：重構（保持綠色）
+        6. ✅ commit
+      - 包含確切的檔案路徑、程式碼片段、測試指令
+      - 每個任務完成後加入 commit 檢查點
+
+      參照規格（specs）了解要建構什麼和測試案例來源，
+      參照設計（design.md）了解架構方法和可測試性設計。
+    requires:
+      - specs
+      - design
+
+  - id: verify
+    generates: verify.md
+    description: 實作前的 PM 與架構師雙重同行審查（最終核准權由人類決定）
+    template: verify.md
+    instruction: |
+      透過兩個不同角度的同行審查，產生 verify.md。
+      AI 負責蒐集審查意見並整理報告，但最終核准權歸使用者（人類）。
+
+      1. **蒐集必要文件**：
+         閱讀 openspec/changes/<change-name>/ 中的以下檔案：
+         - proposal.md（我們要建構什麼以及為什麼）
+         - design.md（技術方案）
+         - plan.md（整合任務清單、測試案例與微步驟）
+
+      2. **發派並行審查**：
+         建立兩個審查請求，使用子代理（subagent）：
+
+         ### PM 審查（plan）
+         啟動一個子代理並設定：
+         - 角色：「你是一位資深 PM，正在審查這項變更。
+           閱讀提供的 plan.md。
+           評估：
+           1. 任務是否完整且範圍適當？
+           2. 計畫是否反映可達成的里程碑？
+           3. 測試案例是否覆蓋所有關鍵需求？
+           4. 提案目標與執行之間是否有落差？
+           提供條列式回饋，並給出你的建議（核准/需修改）。」
+
+         ### 架構師審查（design + proposal）
+         啟動一個子代理並設定：
+         - 角色：「你是一位資深架構師，正在審查這項變更。
+           閱讀提供的 design.md 和 proposal.md。
+           評估：
+           1. 技術決策是否合理且有根據？
+           2. 設計是否與提案目標一致？
+           3. 可測試性設計是否足夠？
+           4. 是否有架構風險或缺口？
+           提供條列式回饋，並給出你的建議（核准/需修改）。」
+
+      3. **編撰 verify.md**：
+         使用以下結構撰寫 verify.md：
+
+         ## AI 審查摘要
+         （AI 對整體的初步評估與建議，僅供參考）
+
+         ## PM 審查
+         ### 發現
+         （PM 關注事項的條列清單）
+         ### AI 建議
+         （AI 基於 PM 回饋的建議：核准 / 需修改）
+
+         ## 架構師審查
+         ### 發現
+         （架構師關注事項的條列清單）
+         ### AI 建議
+         （AI 基於架構師回饋的建議：核准 / 需修改）
+
+         ---
+
+         ## ⚠️ 人類最終決策（此區段由使用者填寫）
+
+         > **以下核取方塊僅限使用者（人類）勾選。**
+         > AI 不得自行勾選或修改此區段。
+         > 在使用者做出決策前，此變更不得進入 apply 階段。
+
+         - [ ] ✅ 核准，進入實作
+         - [ ] ⚠️ 有條件核准（請在下方說明條件）
+         - [ ] ❌ 駁回，需修改（請在下方說明原因）
+
+         ### 使用者備註
+         <!-- 使用者可在此留下核准/駁回的理由或額外指示 -->
+
+      4. **停止並等待人類決策**：
+         verify.md 撰寫完成後，你必須：
+         - 將完整的審查報告呈現給使用者
+         - 明確告知使用者需要在「人類最終決策」區段勾選核准
+         - **停止所有後續動作**，等待使用者回應
+         - 絕對不要自行代替使用者做核准決策
+         - 絕對不要在使用者核准前進入 apply 階段
+    requires:
+      - plan
+
+  - id: retrospective
+    generates: retrospective.md
+    description: >
+      實作後的回顧文件，記錄成果、缺失、計畫偏差與長期學習候選。
+      PRECHECK：commit count > 0 且 plan.md 中有已勾選的任務（`- [x]`）。
+      若 PRECHECK 未通過，停止並告知使用者：必須先完成至少一項實作任務。
+    template: retrospective.md
+    instruction: |
+      PRECHECK — 在撰寫回顧之前，確認以下條件：
+      1. `git log` 顯示至少一個新的 commit（apply 階段產生的）
+      2. plan.md 中至少有一個 `- [x]` 已勾選的任務
+      如果 PRECHECK 未通過，停止並告知使用者必須先完成實作。
+
+      使用 template（`openspec/schemas/fopd-sdlc/templates/retrospective.md`）
+      作為結構框架，填入以下內容：
+
+      1. **證據（§0）**：
+         - 執行 `git log --oneline <base>..HEAD` 取得 commit 鏈
+         - 執行 `git diff --stat <base>..HEAD` 取得 diff 規模
+         - 計算 plan.md 中 `- [x]` 的數量
+         - 列出測試覆蓋率信號（若有）
+
+      2. **成果（§1）**：列出本次實作的成功之處，每項附上
+         證據引用（commit hash、檔案、測試名稱）
+
+      3. **缺失（§2）**：分為 🔴 阻擋性、🟡 痛點、📌 小問題，
+         每項附上證據。若無缺失，寫「無」
+
+      4. **計畫偏差（§3）**：對比 plan.md 與實際執行，
+         記錄哪些任務有偏差及原因
+
+      5. **技能/流程合規性（§4）**：逐項檢查 schema 要求的
+         Superpowers 技能是否都有使用。跳過的技能必須
+         在「刻意跳過的技能」子區段說明原因與預防方案
+
+      6. **意外發現（§5）**：原本假設錯誤的地方
+
+      7. **長期學習候選（§6）**：用 `- [ ]` 核取方塊列出
+         可提升至 memory / CLAUDE.md / schema 的學習項目
+    requires:
+      - verify
+
+apply:
+  requires: [plan, verify]
+  tracks: plan.md
+  instruction: |
+    **⛔ 人類核准門檻檢查（最高優先級）**：
+
+    在做任何事之前，先讀取 verify.md 並檢查
+    「人類最終決策」區段中的核取方塊狀態：
+
+    - 若 `✅ 核准，進入實作` 已被勾選（`- [x]`）→ 繼續執行
+    - 若 `⚠️ 有條件核准` 已被勾選 → 閱讀使用者備註中的條件，
+      先滿足條件後再繼續
+    - 若 `❌ 駁回，需修改` 已被勾選 → 停止，告知使用者需回到
+      對應階段修改後重新驗證
+    - 若所有核取方塊都未勾選 → **停止**，通知使用者：
+      「verify.md 尚未取得人類核准，無法進入實作階段。
+      請在 verify.md 的「人類最終決策」區段勾選您的決定。」
+
+    只有在人類明確核准後，才能繼續以下步驟。
+
+    ---
+
+    在開始實作前，建立隔離的工作環境並設定執行器：
+
+    0. **前置飛行檢查——確認必要的 Superpowers 技能**：
+
+       此 schema 的 apply 階段需要以下技能。
+       在繼續之前，確認每一項都出現在你的可用技能清單中：
+
+       - using-git-worktrees
+       - subagent-driven-development
+         （間接啟動：test-driven-development、
+                     requesting-code-review）
+       - finishing-a-development-branch
+       - verification-before-completion
+
+       如果任何必要技能缺失，停止並通知使用者——
+       不要繼續，也不要靜默降級為手動實作。
+
+       另外，確認專案預期的 CLI 工具已在 PATH 上。
+       具體清單取決於專案——閱讀 plan.md 並列出
+       提到的所有工具。若工具缺失，以警告方式呈現。
+
+    1. **工作區**：使用 Skill 工具呼叫
+       **using-git-worktrees**，為這項變更建立
+       隔離的 git worktree。
+
+    2. **執行器——subagent-driven-development**：
+
+       使用 Skill 工具呼叫
+       **subagent-driven-development** 來執行
+       plan.md 中的微任務，為每個任務使用全新的子代理。
+
+       告訴執行器：
+       - 閱讀此 change 目錄中的 plan.md 取得微任務與測試案例
+       - 完成粗粒度任務時更新 plan.md 的核取方塊
+       - 在建立的 worktree 中工作
+
+       重要——間接技能啟動：
+       subagent-driven-development 內部強制執行以下技能，
+       你不需要手動呼叫它們：
+       - **test-driven-development**——每個任務
+         都遵循 RED-GREEN-REFACTOR。
+       - **requesting-code-review**——每個任務完成後
+         進行程式碼審查。
+
+    3. **完成前驗證**：所有任務完成後，
+       使用 **verification-before-completion** 技能的原則：
+       - 辨識能證明工作完成的指令
+       - 執行完整指令並取得新鮮的輸出
+       - 只在有確鑿證據時才宣稱完成
+
+    4. **回顧（趁記憶猶新時撰寫）**：
+
+       當驗證通過後，在發 PR 之前產生 retrospective.md。
+       使用 retrospective artifact 的 instruction 來撰寫，
+       template 位於 `openspec/schemas/fopd-sdlc/templates/retrospective.md`。
+
+    5. **歸檔**：
+
+       回顧寫完後，執行 `openspec archive -y`。
+
+    6. **完成**：
+
+       使用 Skill 工具呼叫 **finishing-a-development-branch**。

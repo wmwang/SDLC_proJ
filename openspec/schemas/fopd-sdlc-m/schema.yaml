@@ -1,0 +1,130 @@
+name: fopd-sdlc-m
+version: 1
+description: >
+  中型變更的標準開發流程。適用於新增功能、重構模組等中等規模的變更。
+  流程：proposal → specs → design → tasks。
+
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: 提案文件，說明變更的動機與範圍
+    template: proposal.md
+    instruction: |
+      建立提案文件，確立「為什麼」需要這項變更。
+
+      各段落：
+
+      - **為什麼**：1-2 句話說明問題或機會。解決什麼問題？為什麼現在要做？
+
+      - **變更內容**：條列式列出具體變更。明確說明新增的功能、修改的部分
+        或移除的項目。有破壞性變更（Breaking Changes）請標註 **BREAKING**。
+
+      - **能力範圍**：辨識哪些規格需要建立或修改：
+        - **新增能力**：列出將要引入的能力。每一項都會對應一個
+          `specs/<名稱>/spec.md`。使用 kebab-case 命名（例如 `user-auth`、`data-export`）。
+        - **修改能力**：列出需求層級有變更的既有能力。只有在規格行為
+          確實改變時才列入（不是只改實作細節）。每一項都需要差異規格檔。
+          請先查看 `openspec/specs/` 確認既有規格名稱。沒有需求變更時留空。
+
+      - **影響範圍**：受影響的程式碼、API、相依性或系統。
+
+      保持精簡（1-2 頁）。聚焦在「為什麼」而非「怎麼做」——
+      實作細節屬於 design.md 的範疇。
+
+      這份提案是整個流程的基石——規格、設計和任務都以此為基礎。
+    requires: []
+
+  - id: specs
+    generates: "specs/**/*.md"
+    description: 詳細規格文件，定義系統行為
+    template: spec.md
+    instruction: |
+      建立規格檔案，定義系統「應該做什麼」。
+
+      依據提案的「能力範圍」段落，為每一項能力建立一份規格檔。
+      - 新增能力：使用提案中的 kebab-case 名稱（specs/<能力名稱>/spec.md）。
+      - 修改能力：使用 openspec/specs/<能力名稱>/ 中既有的資料夾名稱
+        建立差異規格（specs/<能力名稱>/spec.md）。
+
+      差異操作（使用 ## 標題）：
+      - **新增需求（ADDED Requirements）**：全新的能力
+      - **修改需求（MODIFIED Requirements）**：行為改變——必須包含完整更新內容
+      - **移除需求（REMOVED Requirements）**：廢棄的功能——必須包含 **原因** 和 **遷移方式**
+      - **更名需求（RENAMED Requirements）**：僅名稱變更——使用 FROM:/TO: 格式
+
+      格式要求：
+      - 每項需求：`### Requirement: <名稱>` 後接描述
+      - 使用「應（SHALL）」/「必須（MUST）」作為規範性要求（避免 should/may）
+      - 每個情境：`#### Scenario: <名稱>` 搭配 WHEN/THEN 格式
+      - **關鍵**：情境標題必須使用 4 個井號（`####`）。使用 3 個井號或項目符號會靜默失敗。
+      - 每項需求至少要有一個情境。
+
+      規格應該是可測試的——每個情境就是一個潛在的測試案例。
+    requires:
+      - proposal
+
+  - id: design
+    generates: design.md
+    description: 技術設計文件，說明實作方式
+    template: design.md
+    instruction: |
+      建立技術設計文件，說明「如何」實作這項變更。
+
+      何時需要 design.md（符合以下任一條件時才建立）：
+      - 跨切面變更（多個服務/模組）或新的架構模式
+      - 新的外部依賴或重大資料模型變更
+      - 安全性、效能或遷移上的複雜度
+      - 在寫程式碼之前需要先做技術決策的模糊地帶
+
+      各段落：
+
+      - **背景**：背景資訊、目前狀態、限制條件、利害關係人
+
+      - **目標 / 非目標**：這份設計要達成什麼，以及明確排除什麼
+
+      - **決策**：關鍵技術選擇及其理由（為什麼選 X 而非 Y？）。
+        每個決策都要包含考慮過的替代方案。
+
+      - **風險 / 取捨**：已知的限制、可能出問題的地方。
+        格式：[風險] → 緩解方案
+
+      聚焦在架構與方法，而非逐行實作。
+      參照提案了解動機，參照規格了解需求。
+
+      好的設計文件會解釋技術決策背後的「為什麼」。
+    requires:
+      - proposal
+
+  - id: tasks
+    generates: tasks.md
+    description: 實作核取清單，可追蹤進度
+    template: tasks.md
+    instruction: |
+      建立任務清單，將實作工作拆解為可追蹤的項目。
+
+      **重要：請嚴格遵循以下範本格式。** apply 階段會解析核取方塊格式
+      來追蹤進度。未使用 `- [ ]` 的任務將無法被追蹤。
+
+      指引：
+      - 使用 ## 編號標題將相關任務分組
+      - 每個任務必須是核取方塊：`- [ ] X.Y 任務描述`
+      - 任務應小到可以在一個工作階段內完成
+      - 按照依賴順序排列（什麼必須先做？）
+
+      參照規格（specs）了解要建構什麼，參照設計（design.md）了解如何建構。
+      每個任務都應該是可驗證的——你知道什麼時候算完成。
+    requires:
+      - specs
+      - design
+
+apply:
+  requires:
+    - tasks
+  tracks: tasks.md
+  instruction: |
+    閱讀上下文檔案（proposal.md、specs/、design.md），
+    依序完成 tasks.md 中的待辦任務。
+
+    每完成一個任務，將對應的核取方塊從 `- [ ]` 改為 `- [x]`。
+
+    遇到阻礙或需要釐清時，暫停並請求釐清。

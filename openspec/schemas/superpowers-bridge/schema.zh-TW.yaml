@@ -1,0 +1,110 @@
+name: superpowers-bridge
+version: 1
+description: >
+  整合 Superpowers skills 的規格驅動工作流程。
+  前置需求：需具備 Superpowers skills（透過 plugin、.qwen/skills/、
+  .claude/skills/ 或其他方式安裝），提供以下 skills：
+  writing-plans、using-git-worktrees、
+  subagent-driven-development、finishing-a-development-branch。
+  另需 prd skill 用於第一個 artifact。
+  需支援子代理的平台（Claude Code、Codex 等）—
+  此 schema 不支援無子代理的執行環境，
+  因為替代執行器（executing-plans）會失去 TDD 與
+  code-review 的傳遞啟用，喪失 Superpowers 的價值。
+  若平台不支援子代理，請改用 spec-driven schema。
+  每個 artifact / apply 步驟在呼叫前會驗證所需的 skills，
+  若有缺漏會顯示明確錯誤。
+  prd → proposal → specs → tasks → plan → verify → retrospective。
+  design 為必要（將 prd 產出重組為結構化的
+  Context / Goals / Decisions / Risks / Migration；供 tasks
+  與 plan 參考作為實作指引）。
+  Apply 階段使用 git worktrees + subagent-driven-development
+  （連帶啟用 TDD 與 code-review）。
+
+artifacts:
+  - id: prd
+    generates: prd.md
+    description: 透過 prd skill 產生的產品需求文件
+    template: prd.md
+    instruction: |
+      前置檢查 — 確認 skill 可用性：
+      呼叫前，確認 `prd` 出現在可用 skills 列表中。
+      若缺少，停止並告知使用者需安裝 prd skill
+      （或使用者可明確選擇使用下方模板手動撰寫 prd.md）。
+      不得靜默退回。
+
+      使用 Skill 工具呼叫 **prd**。
+
+      重要輸出重導：
+      - 不要寫入 `tasks/prd-[feature-name].md`。請將
+        PRD 輸出直接寫入此 change 的 `prd.md`。
+      - prd.md 擷取 prd skill 的完整產出 — 結構化的
+        產品需求，包含目標、使用者故事、功能需求、
+        非目標及成功指標。
+      - 此步驟不得預先填寫 design.md。design.md 是
+        獨立的 artifact，負責將 prd.md 內容重組為
+        技術設計段落（Context、Goals、Decisions、Risks、
+        Migration）。該轉換在 design 步驟中進行。
+
+      prd skill 將：
+      1. 接收使用者提供的功能描述
+      2. 提出 3-5 個釐清問題（附字母選項）
+      3. 根據回答產生結構化 PRD
+      4. 輸出經驗證的 PRD
+    requires: []
+
+  - id: proposal
+    generates: proposal.md
+    description: 概述變更的初始提案文件
+    template: proposal.md
+    instruction: |
+      根據 PRD 產出建立提案文件。
+
+      讀取 prd.md 取得已驗證的產品需求。擷取：
+      - **Why（動機）**：來自 PRD 目標與簡介
+      - **What Changes（變更內容）**：從功能需求推導的具體變更
+      - **Capabilities（能力）**：識別需要建立或修改的規格：
+        - **New Capabilities**：列出新增的能力。每項成為新的 `specs/<name>/spec.md`。使用 kebab-case 命名。
+        - **Modified Capabilities**：列出需求有變動的現有能力。檢查 `openspec/specs/` 中的現有規格名稱。
+      - **Impact（影響）**：受影響的程式碼、API、依賴或系統。
+
+      由於 PRD 已探索過問題空間，
+      此處應為簡潔的擷取，而非重新探索。
+
+      重要：Capabilities 段落至關重要。它建立了 proposal 與
+      specs 階段之間的合約。此處列出的每項能力都需要一個規格檔案。
+
+      保持簡潔（1-2 頁）。專注於「為什麼」而非「怎麼做」。
+    requires:
+      - prd
+
+  - id: design
+    generates: design.md
+    description: 包含實作細節的技術設計文件
+    template: design.md
+    instruction: |
+      建立說明如何實作變更的設計文件。
+
+      讀取 prd.md 作為輸入。prd.md 包含 prd skill 的結構化產出
+      （目標、使用者故事、功能需求、非目標、成功指標）。
+      你的工作是將產品導向的內容重新組織為以下技術設計段落。
+
+      這是轉換，不是複製。擷取並重組：
+      - Goals / Non-Goals（來自 PRD）→ design.md §Goals / Non-Goals
+      - 背景/上下文（來自 PRD 簡介）→ design.md §Context
+      - 技術決策（從 PRD 需求推導）→ design.md §Decisions
+      - 風險（來自 PRD 考量 + 推斷的取捨）→ design.md §Risks / Trade-offs
+      - 新增遷移計畫（可能需從 prd.md 內容推斷）
+
+      段落：
+      - **Context（背景）**：背景、現況、限制、利害關係人
+      - **Goals / Non-Goals**：此設計達成什麼、明確排除什麼
+      - **Decisions（決策）**：關鍵技術選擇及其理由（為何選 X 不選 Y？）。包含每項決策的替代方案。
+      - **Risks / Trade-offs（風險/取捨）**：已知限制、可能出錯之處。格式：[風險] → 緩解措施
+      - **Migration Plan（遷移計畫）**：部署步驟、回滾策略（如適用）
+      - **Open Questions（待決問題）**：尚待解決的決策或未知事項
+
+      專注於架構與方法，而非逐行實作。
+      好的設計文件解釋技術決策背後的「為什麼」。
+    requires:
+      - prd
