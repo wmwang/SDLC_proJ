@@ -6,9 +6,9 @@ description: >
   流程：proposal → specs → design → plan → verify → apply → retrospective。
   plan 階段整合了任務清單、微任務拆解與測試案例，
   是唯一的「做什麼 + 怎麼做 + 怎麼測」文件。
-  需求：Superpowers 技能已安裝（writing-plans、using-git-worktrees、
+  需求：Superpowers 技能已安裝（writing-plans、
   subagent-driven-development、finishing-a-development-branch）。
-  Apply 階段使用 git worktree 隔離環境 + subagent-driven-development
+  Apply 階段使用 subagent-driven-development
   （間接啟動 test-driven-development 與 requesting-code-review）。
   verify 階段需人類最終核准才能進入 apply。
 
@@ -269,9 +269,11 @@ artifacts:
          Superpowers 技能是否都有使用。跳過的技能必須
          在「刻意跳過的技能」子區段說明原因與預防方案
 
-      6. **意外發現（§5）**：原本假設錯誤的地方
+      6. **PR 評估自評（§5）**：依據設計先行、測試覆蓋、程式品質與流程可追溯四個維度客觀自評（1-3 分），並條列具體佐證與分數。
 
-      7. **長期學習候選（§6）**：用 `- [ ]` 核取方塊列出
+      7. **意外發現（§6）**：原本假設錯誤的地方
+
+      8. **長期學習候選（§7）**：用 `- [ ]` 核取方塊列出
          可提升至 memory / CLAUDE.md / schema 的學習項目
     requires:
       - verify
@@ -298,14 +300,13 @@ apply:
 
     ---
 
-    在開始實作前，建立隔離的工作環境並設定執行器：
+    在開始實作前，確認開發環境並設定執行器：
 
     0. **前置飛行檢查——確認必要的 Superpowers 技能**：
 
        此 schema 的 apply 階段需要以下技能。
        在繼續之前，確認每一項都出現在你的可用技能清單中：
 
-       - using-git-worktrees
        - subagent-driven-development
          （間接啟動：test-driven-development、
                      requesting-code-review）
@@ -319,9 +320,7 @@ apply:
        具體清單取決於專案——閱讀 plan.md 並列出
        提到的所有工具。若工具缺失，以警告方式呈現。
 
-    1. **工作區**：使用 Skill 工具呼叫
-       **using-git-worktrees**，為這項變更建立
-       隔離的 git worktree。
+    1. **工作區**：在目前的工作區工作（團隊視需要自選隔離機制，流程本身不再強加 worktree 建立）。
 
     2. **執行器——subagent-driven-development**：
 
@@ -332,7 +331,7 @@ apply:
        告訴執行器：
        - 閱讀此 change 目錄中的 plan.md 取得微任務與測試案例
        - 完成粗粒度任務時更新 plan.md 的核取方塊
-       - 在建立的 worktree 中工作
+       - 在目前的工作區中工作
 
        重要——間接技能啟動：
        subagent-driven-development 內部強制執行以下技能，

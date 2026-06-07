@@ -50,7 +50,6 @@ Commit 鏈（時序）：
 | 技能                                                | 已使用 |
 |-----------------------------------------------------|--------|
 | superpowers:writing-plans                           |        |
-| superpowers:using-git-worktrees                     |        |
 | superpowers:subagent-driven-development             |        |
 | （間接）superpowers:test-driven-development         |        |
 | （間接）superpowers:requesting-code-review          |        |
@@ -67,11 +66,24 @@ Commit 鏈（時序）：
   - **這個週期為什麼跳**: <具體原因——不可寫「不需要」/「太小」等含糊理由>
   - **如何防止再發生**: <下個週期的改善措施>
 
-## 5. 意外發現
+## 5. PR 評估自評卡（PR Audit Rubric）
+
+AI 應針對本次變更的實作品質，在以下四個維度進行客觀自評（評分標準：1 至 3 分）：
+
+| 評估維度 | 自評分數 | 具體佐證說明（引用 Commit、檔案或測試） |
+| :--- | :---: | :--- |
+| **設計先行 (Design-First)** | ` ` / 3 | |
+| **測試覆蓋 (Test Coverage)** | ` ` / 3 | |
+| **程式品質 (Code Quality)** | ` ` / 3 | |
+| **流程可追溯 (Traceability)** | ` ` / 3 | |
+
+* **自評總分**：` ` / 12 (建議 8 分以上且無 1 分項目方可合併)
+
+## 6. 意外發現
 
 - <原本假設錯誤的地方>
 
-## 6. 長期學習候選項目
+## 7. 長期學習候選項目
 
 每條候選項目用 `- [ ]` 核取方塊：
 
@@ -87,3 +99,4 @@ Commit 鏈（時序）：
   > **為什麼**: <為什麼不適合泛化>
 
 ---
+
