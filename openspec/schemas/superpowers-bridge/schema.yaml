@@ -4,8 +4,9 @@ description: >
   Spec-driven workflow integrated with Superpowers skills.
   Requirements: Superpowers skills available (installed via plugin, .qwen/skills/,
   .claude/skills/, or any other method), providing skills:
-  brainstorming, writing-plans, using-git-worktrees,
+  writing-plans, using-git-worktrees,
   subagent-driven-development, finishing-a-development-branch.
+  Also requires the prd skill for the first artifact.
   Requires a subagent-capable platform (Claude Code, Codex, etc.) —
   this schema does not support runtimes without subagent support,
   because the alternative executor (executing-plans) loses TDD and
@@ -13,48 +14,44 @@ description: >
   If your platform lacks subagent support, use spec-driven instead.
   Each artifact / apply step verifies its required skills before
   invoking and surfaces a clear error if any are missing.
-  brainstorm → proposal → specs → tasks → plan → verify → retrospective.
-  design is required (reorganizes raw brainstorm output into structured
+  prd → proposal → specs → tasks → plan → verify → retrospective.
+  design is required (reorganizes prd output into structured
   Context / Goals / Decisions / Risks / Migration; referenced by tasks
   and plan for implementation guidance).
   Apply phase uses git worktrees + subagent-driven-development
   (brings TDD and code-review transitively).
 
 artifacts:
-  - id: brainstorm
-    generates: brainstorm.md
-    description: Collaborative design exploration using Superpowers brainstorming
-    template: brainstorm.md
+  - id: prd
+    generates: prd.md
+    description: Product Requirements Document generated via prd skill
+    template: prd.md
     instruction: |
       PRECHECK — required skill availability:
-      Before invoking, confirm `superpowers:brainstorming` appears in
-      your available skills list. If missing, STOP and inform the user
-      that the required Superpowers skill must be installed (or that they can
-      explicitly opt to write brainstorm.md manually using the template
-      below). Do NOT silently fall back.
+      Before invoking, confirm `prd` appears in your available
+      skills list. If missing, STOP and inform the user that the
+      prd skill must be installed (or that they can explicitly opt
+      to write prd.md manually using the template below).
+      Do NOT silently fall back.
 
-      Use the Skill tool to invoke **superpowers:brainstorming**.
+      Use the Skill tool to invoke **prd**.
 
       IMPORTANT output redirection:
-      - Do NOT write to `docs/superpowers/specs/`. Instead, write the
-        brainstorming output directly to this change's `brainstorm.md`.
-      - brainstorm.md is a RAW CAPTURE — write the brainstorming
-        skill's full output as-is, without forcing any template
-        structure. The skill's natural output is typically a decision
-        log (background → decision chain Q1-Qn → design trade-offs),
-        but the format varies by conversation. Preserve the skill's
-        natural organization.
+      - Do NOT write to `tasks/prd-[feature-name].md`. Instead,
+        write the PRD output directly to this change's `prd.md`.
+      - prd.md captures the PRD skill's full output — structured
+        product requirements including goals, user stories, functional
+        requirements, non-goals, and success metrics.
       - Do NOT pre-fill design.md during this step. design.md is a
-        separate artifact that reorganizes brainstorm.md content into
-        structured sections (Context, Goals, Decisions, Risks,
+        separate artifact that reorganizes prd.md content into
+        technical design sections (Context, Goals, Decisions, Risks,
         Migration). That transformation happens in the design step.
 
-      The brainstorming skill will:
-      1. Explore project context
-      2. Ask clarifying questions (one at a time)
-      3. Propose 2-3 approaches with trade-offs
-      4. Present design sections for approval
-      5. Output the validated design
+      The prd skill will:
+      1. Receive a feature description from the user
+      2. Ask 3-5 clarifying questions (with lettered options)
+      3. Generate a structured PRD based on answers
+      4. Output the validated PRD
     requires: []
 
   - id: proposal
@@ -62,17 +59,17 @@ artifacts:
     description: Initial proposal document outlining the change
     template: proposal.md
     instruction: |
-      Create the proposal document based on the brainstorming output.
+      Create the proposal document based on the PRD output.
 
-      Read brainstorm.md for the validated design. Extract:
-      - **Why**: The motivation (from brainstorming discussion)
-      - **What Changes**: Specific changes agreed upon
+      Read prd.md for the validated product requirements. Extract:
+      - **Why**: The motivation (from PRD goals and introduction)
+      - **What Changes**: Specific changes derived from functional requirements
       - **Capabilities**: Identify which specs will be created or modified:
         - **New Capabilities**: List capabilities being introduced. Each becomes a new `specs/<name>/spec.md`. Use kebab-case names.
         - **Modified Capabilities**: List existing capabilities whose REQUIREMENTS are changing. Check `openspec/specs/` for existing spec names.
       - **Impact**: Affected code, APIs, dependencies, or systems.
 
-      Since brainstorming already explored the problem space,
+      Since the PRD already explored the problem space,
       this should be a concise extraction, not a new exploration.
 
       IMPORTANT: The Capabilities section is critical. It creates the contract between
@@ -80,7 +77,7 @@ artifacts:
 
       Keep it concise (1-2 pages). Focus on the "why" not the "how".
     requires:
-      - brainstorm
+      - prd
 
   - id: design
     generates: design.md
@@ -89,17 +86,17 @@ artifacts:
     instruction: |
       Create the design document explaining HOW to implement the change.
 
-      Read brainstorm.md as input. brainstorm.md is a raw capture of
-      the brainstorming skill's output (typically a decision log with
-      Q1-Qn decisions, trade-offs, and context). Your job is to
-      REORGANIZE that content into the structured sections below.
+      Read prd.md as input. prd.md contains the PRD skill's structured
+      output (goals, user stories, functional requirements, non-goals,
+      success metrics). Your job is to REORGANIZE that product-oriented
+      content into technical design sections below.
 
       This is a transformation, not a copy. Extract and restructure:
-      - Decisions (Q1-Qn from brainstorm) → design.md §Decisions
-      - Background/context → design.md §Context
-      - Trade-offs → design.md §Risks / Trade-offs
-      - Add Goals/Non-Goals and Migration Plan (may require
-        inference from brainstorm.md content)
+      - Goals / Non-Goals (from PRD) → design.md §Goals / Non-Goals
+      - Background/context (from PRD introduction) → design.md §Context
+      - Technical decisions (derived from PRD requirements) → design.md §Decisions
+      - Risks (from PRD considerations + inferred trade-offs) → design.md §Risks / Trade-offs
+      - Add Migration Plan (may require inference from prd.md content)
 
       Sections:
       - **Context**: Background, current state, constraints, stakeholders
@@ -112,7 +109,7 @@ artifacts:
       Focus on architecture and approach, not line-by-line implementation.
       Good design docs explain the "why" behind technical decisions.
     requires:
-      - brainstorm
+      - prd
 
   - id: specs
     generates: "specs/**/*.md"
@@ -170,16 +167,17 @@ artifacts:
     template: plan.md
     instruction: |
       PRECHECK — required skill availability:
-      Before invoking, confirm `superpowers:writing-plans` appears in
+      Before invoking, confirm `writing-plans` appears in
       your available skills list. If missing, STOP and inform the user
       that the required Superpowers skill must be installed (or that they can
       explicitly opt to write plan.md manually using the template
       below). Do NOT silently fall back.
 
-      Use the Skill tool to invoke **superpowers:writing-plans**.
+      Use the Skill tool to invoke **writing-plans**.
 
       IMPORTANT output redirection:
-      - Do NOT write to `docs/superpowers/plans/`. Instead, write
+      - Do NOT write to `docs/superpowers/plans/` (or any skill-default
+        path). Instead, write
         the plan directly to this change's `plan.md`.
 
       The writing-plans skill will:
@@ -193,6 +191,7 @@ artifacts:
       design artifacts in this change directory.
     requires:
       - tasks
+      - design
 
   - id: verify
     generates: verify.md
@@ -253,18 +252,18 @@ artifacts:
 
       6. **Front-door routing leak detector** (warning, non-blocking):
 
-         For projects using superpowers-bridge, design output
-         should never land in `docs/superpowers/specs/` — the
-         brainstorm artifact's output redirection (see this
-         schema's brainstorm.instruction) routes it to
-         `openspec/changes/<name>/brainstorm.md`. Run:
+         For projects using superpowers-bridge, PRD output
+         should never land in `tasks/prd-*.md` — the
+         prd artifact's output redirection (see this
+         schema's prd.instruction) routes it to
+         `openspec/changes/<name>/prd.md`. Run:
 
-           ls docs/superpowers/specs/*.md 2>/dev/null
+           ls tasks/prd-*.md 2>/dev/null
 
          If any files exist, record a WARNING: "Front-door routing
-         leak — design output found at docs/superpowers/specs/...;
-         these belong in openspec/changes/<name>/brainstorm.md or
-         design.md. Move/delete after confirming content is captured
+         leak — PRD output found at tasks/prd-*.md;
+         these belong in openspec/changes/<name>/prd.md.
+         Move/delete after confirming content is captured
          in the change directory."
 
          Non-blocking — adopters may have legitimate non-schema use
@@ -336,7 +335,7 @@ artifacts:
          - Run `git log --oneline <base>..HEAD` in the change worktree
            (or main checkout if the worktree was already merged) to
            get the commit range
-         - Read brainstorm.md, plan.md, tasks.md in this change
+         - Read prd.md, plan.md, tasks.md in this change
            directory for plan-vs-actual comparison
          - If verify.md contains failing items, address them BEFORE
            writing the retro
@@ -470,11 +469,11 @@ apply:
        Confirm each appears in your available skills list before
        proceeding:
 
-       - superpowers:using-git-worktrees
-       - superpowers:subagent-driven-development
-         (transitively: superpowers:test-driven-development,
-                        superpowers:requesting-code-review)
-       - superpowers:finishing-a-development-branch
+       - using-git-worktrees
+       - subagent-driven-development
+         (transitively: test-driven-development,
+                        requesting-code-review)
+       - finishing-a-development-branch
 
        If any required skill is missing, STOP and inform the user —
        do NOT proceed and do NOT silently fall back to manual
@@ -491,13 +490,13 @@ apply:
        start so the user isn't surprised mid-cycle.
 
     1. **Workspace**: Use the Skill tool to invoke
-       **superpowers:using-git-worktrees** to create an isolated
+       **using-git-worktrees** to create an isolated
        git worktree for this change.
 
     2. **Executor — subagent-driven-development**:
 
        Use the Skill tool to invoke
-       **superpowers:subagent-driven-development** to execute
+       **subagent-driven-development** to execute
        the plan.md micro-tasks with fresh subagents per task.
 
        Tell the executor:
@@ -509,16 +508,16 @@ apply:
        subagent-driven-development internally enforces the
        following skills, so you do NOT need to invoke them
        manually:
-       - **superpowers:test-driven-development** — every task
+       - **test-driven-development** — every task
          follows RED-GREEN-REFACTOR. Implementation code written
          before a failing test is deleted.
-       - **superpowers:requesting-code-review** — after each
+       - **requesting-code-review** — after each
          task, a code-reviewer subagent is dispatched to catch
          spec compliance and code quality issues. A final review
          runs for the entire implementation before apply
          concludes.
 
-       This schema does NOT support `superpowers:executing-plans`
+       This schema does NOT support `executing-plans`
        as a fallback for non-subagent platforms. Per its SKILL.md,
        executing-plans does not transitively activate TDD or
        code-review — defeating the rigor that Superpowers brings.
@@ -558,7 +557,7 @@ apply:
     6. **Completion (PR is the LAST step)**:
 
        After retrospective + archive are both done, use the Skill
-       tool to invoke **superpowers:finishing-a-development-branch**.
+       tool to invoke **finishing-a-development-branch**.
 
        The branch's PR diff MUST contain the complete archived
        cycle. If it doesn't (e.g., because retrospective or archive
