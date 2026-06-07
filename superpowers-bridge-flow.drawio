@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="superpowers-bridge">
+    <mxGraphModel>
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ===== PHASE HEADER: Planning ===== -->
+        <mxCell id="header_plan" value="Planning Phase (Artifacts)" style="text;html=1;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="80" y="10" width="520" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ===== PHASE HEADER: Apply ===== -->
+        <mxCell id="header_apply" value="Apply Phase (Implementation)" style="text;html=1;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="80" y="730" width="520" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ===== PRD ===== -->
+        <mxCell id="prd" value="prd.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="100" y="50" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="prd_note" value="prd skill" style="text;html=1;fontSize=10;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="100" y="100" width="140" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ===== PROPOSAL ===== -->
+        <mxCell id="proposal" value="proposal.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="100" y="150" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="proposal_note" value="Why + Capabilities" style="text;html=1;fontSize=10;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="100" y="200" width="140" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ===== DESIGN ===== -->
+        <mxCell id="design" value="design.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="340" y="150" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="design_note" value="Context / Goals /&#xa;Decisions / Risks" style="text;html=1;fontSize=10;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="330" y="200" width="160" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ===== SPECS ===== -->
+        <mxCell id="specs" value="specs/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="100" y="270" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="specs_note" value="WHAT to build&#xa;(SHALL / MUST)" style="text;html=1;fontSize=10;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="90" y="320" width="160" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ===== TASKS ===== -->
+        <mxCell id="tasks" value="tasks.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="100" y="390" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="tasks_note" value="- [ ] checkbox tasks" style="text;html=1;fontSize=10;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="100" y="440" width="140" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ===== PLAN ===== -->
+        <mxCell id="plan" value="plan.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="100" y="500" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="plan_note" value="writing-plans skill&#xa;Micro-tasks (TDD)" style="text;html=1;fontSize=10;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="85" y="550" width="170" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ===== APPLY CONTAINER ===== -->
+        <mxCell id="apply_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;dashed=1;opacity=30;" vertex="1" parent="1">
+          <mxGeometry x="50" y="610" width="580" height="400" as="geometry" />
+        </mxCell>
+
+        <!-- ===== VERIFY ===== -->
+        <mxCell id="verify" value="verify.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="100" y="660" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="verify_note" value="7-point checklist&#xa;(inc. leak detector)" style="text;html=1;fontSize=10;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="85" y="710" width="170" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ===== RETROSPECTIVE ===== -->
+        <mxCell id="retro" value="retrospective.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="100" y="780" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="retro_note" value="§0-§6 Evidence-first" style="text;html=1;fontSize=10;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="85" y="830" width="170" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ===== ARCHIVE ===== -->
+        <mxCell id="archive" value="Archive" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13;size=15;" vertex="1" parent="1">
+          <mxGeometry x="110" y="890" width="120" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="archive_note" value="sync specs +&#xa;move to archive/" style="text;html=1;fontSize=10;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="95" y="960" width="150" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ===== APPLY DETAIL BOX ===== -->
+        <mxCell id="apply_detail" value="" style="swimlane;startSize=25;fillColor=#ffe6cc;strokeColor=#d79b00;rounded=1;fontStyle=1;fontSize=12;swimlaneLine=0;" vertex="1" parent="1">
+          <mxGeometry x="300" y="660" width="300" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="apply_title" value="Apply Phase (subagent-driven)" style="text;html=1;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#d79b00;" vertex="1" parent="apply_detail">
+          <mxGeometry x="0" y="0" width="300" height="25" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step_worktree" value="1. git worktree" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="apply_detail">
+          <mxGeometry x="20" y="35" width="120" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="step_tdd" value="2. subagent-driven&#xa;   (TDD + code-review)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="apply_detail">
+          <mxGeometry x="20" y="85" width="260" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="step_verify" value="3. verify" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="apply_detail">
+          <mxGeometry x="20" y="140" width="120" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="step_retro" value="4. retrospective" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="apply_detail">
+          <mxGeometry x="20" y="190" width="120" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="step_archive" value="5. archive" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="apply_detail">
+          <mxGeometry x="20" y="240" width="120" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Apply internal arrows -->
+        <mxCell id="ea1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="apply_detail" source="step_worktree" target="step_tdd">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ea2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="apply_detail" source="step_tdd" target="step_verify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ea3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="apply_detail" source="step_verify" target="step_retro">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ea4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="apply_detail" source="step_retro" target="step_archive">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== EDGES: Artifact dependency chain ===== -->
+        <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" parent="1" source="prd" target="proposal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1b" value="requires" style="text;html=1;fontSize=9;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="165" y="120" width="60" height="15" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#9673a6;dashed=1;" edge="1" parent="1" source="prd" target="design">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="270" y="75" />
+              <mxPoint x="270" y="175" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2b" value="reorganizes" style="text;html=1;fontSize=9;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="255" y="115" width="70" height="15" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" parent="1" source="proposal" target="specs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" parent="1" source="specs" target="tasks">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4b" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#9673a6;dashed=1;" edge="1" parent="1" source="design" target="tasks">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="345" />
+              <mxPoint x="205" y="345" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4c" value="specs + design → tasks" style="text;html=1;fontSize=9;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="200" y="355" width="120" height="15" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="tasks" target="plan">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Plan to Apply connector -->
+        <mxCell id="e_apply" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#d79b00;" edge="1" parent="1" source="plan" target="apply_detail">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="450" y="580" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_apply_label" value="apply" style="text;html=1;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="420" y="590" width="60" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

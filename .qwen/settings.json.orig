@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx *)",
+      "Bash(true)",
+      "Bash(./node_modules/.bin/vitest *)",
+      "Bash(node *)"
+    ]
+  },
+  "$version": 4
+}
