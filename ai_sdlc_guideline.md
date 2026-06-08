@@ -1,131 +1,69 @@
-# AI 主導開發（AI-Driven Development）SDLC 實踐指南與監控準則
+# AI-SDLC: Engineering Governance & Quality Gateways
 
-## 1. 前言與核心理念
+## 1. Core Philosophy (核心設計哲學)
 
-隨著 AI 編碼工具（如 Cursor、GitHub Copilot、Gemini、Claude 等）的普及，開發速度大幅提升。然而，缺乏引導的 AI 開發容易產生以下副作用：
-* **程式碼失控**：過快產生大量程式碼，但缺乏規格說明，導致後續難以維護。
-* **測試缺失或無效 Mock**：AI 傾向於規避測試，或撰寫無效的 mock 測試來掩蓋代碼缺陷。
-* **架構偏離**：AI 在不了解系統全局的情況下，容易隨意引入新的依賴或違反既有架構設計。
+AI 輔助編碼與 Agent 技術大幅提升了開發速率，但也對系統架構與生產環境的穩定性帶來了全新挑戰。本指南旨在建立一套與工具無關 (Tool-Agnostic) 的品質把關標準，其核心精神為「放權 AI 高速執行，但在關鍵節點實施強稽核」。
 
-本指南旨在脫離特定工具（如 OpenSpec），以**軟體開發生命週期（SDLC）**的視角，為團隊建立一套**「AI 主導開發的標準化流程與監控準則」**。團隊成員不論使用何種 AI 工具，皆可參照本指南的「檢核點（Checkpoints）」來監督與評估 AI 產出的品質。
-
-### 核心原則：
-> 💡 **Design before Code（先設計再寫扣）**
-> 💡 **Test before Code（先寫測試再寫實作）**
-> 💡 **Verify before Commit（先跑驗證再做提交）**
+我們基於以下五個 SDLC 專家核心設計哲學 (Design Philosophy)：
+* 💡 **Shift-Left Testing & Design (左移原則)**：將技術設計決策與 BDD 規格大幅提前，在 AI 動工前過濾掉 80% 的業務與邏輯偏差。
+* 💡 **Test-Driven Development (TDD) Guardrails (測試驅動開發)**：強制實施測試先行，利用失敗測試 (RED) 定義代碼邊界與設計介面，以 Green-Refactor 流程防範 AI 產生不可維護的「黑箱程式碼 (Black-box Code)」，並為後續重構提供無退化 (No-regression) 的防護網。
+* 💡 **Human-in-the-Loop (HITL) Governance (人類最終把關)**：AI 負責加速交付，人類作為 Gatekeeper 負責系統合規 (Compliance) 與架構治理 (Governance)。
+* 💡 **SRE Guardrails (DevOps/SRE 運維安全圍欄)**：將 Canary 部署、退版計畫與黃金指標監控融入發布檢核，防止高頻發布對生產環境造成衝擊。
+* 💡 **Anti-Hallucination Guardrails (對抗 AI 幻覺)**：推行「誠實原則」，動態/未知欄位必須強制以 TODO 留空供人類把關，嚴禁 AI 捏造數據。
 
 ---
 
-### 1.1 上游需求銜接規範 (PM & RD AI 協作模式)
+### 1.1 Requirements Ingestion (需求接入協議)
 
-為確保 AI 開發鏈的高效運作，本 SDLC 流程支援兩類需求輸入，PM 團隊可根據專案複雜度靈活選擇：
+為確保 AI 開發鏈的高效運作，本流程支援兩類需求輸入以銜接實作：
 
-1. **基礎模式 (URD 輸入)**：PM 交付用戶需求說明書 (URD)，由研發端 AI 代理與團隊在實作計畫中通靈與收斂細節。此模式 PM 最省時，但 RD/AI 需花較多精力進行 `verify.md` 評審對齊。
-2. **優先/推薦模式 (高品質 PRD 輸入)**：PM 團隊可選用專屬 AI 輔助工具（例如 [`prd`](https://github.com/snarktank/ralph/blob/main/skills/prd/SKILL.md) 技能或 [`brainstorming`](https://github.com/obra/superpowers/blob/main/skills/brainstorming/SKILL.md) 技能）協同產出高品質的產品需求文件 (PRD)。這能極大提高 AI 實作代理的理解精度，縮短評審週期，實現 One-pass (一次通過) 審查。
+1. **Base Mode (URD Input)**：高階用戶需求輸入。AI 與 RD 於實作前期協同收斂細節。此模式 PM 負擔輕，但 **`Gate A`** 評審週期較長，需較多人工微調。
+2. **Premium Mode (高品質 PRD Input)**：AI 協同產出高品質 PRD（具備明確業務邊界與 BDD 規格）。極大化 AI 對業務情境的理解，可縮短評審週期，實現 **One-pass Approval (一次性核准)**。
+
+無論何種模式，需求的業務邊界檢驗皆必須在 **`Gate A`** 中由人類進行最終核准把關。
 
 ---
 
+## 2. Lifecycle & Quality Gates (流程與品質閘門)
 
-## 2. AI SDLC 流程節點與監控準則
+AI 開發的流暢度與安全性，取決於在關鍵步驟交界處設立的 **三道品質閘門 (Quality Gates)**：
 
-```text
-┌────────────────┐    ┌────────────────┐    ┌────────────────┐    ┌────────────────┐
-│ ① 需求與範疇   │ ──>│ ② 規格行為定義 │ ──>│ ③ 技術設計與決策│ ──>│ ④ 實作與測試計畫│
-└────────────────┘    └────────────────┘    └────────────────┘    └────────────────┘
-                                                                           │
-┌────────────────┐    ┌────────────────┐    ┌────────────────┐             │
-│ ⑧ 歸檔與記憶收斂│ <──│ ⑦ 交付與回顧   │ <──│ ⑥ 實作與雙軌審查│ <───────────┘
-└────────────────┘    └────────────────┘    └────────────────┘
+```mermaid
+flowchart LR
+    A["1. Design & Specs<br/>(設計與規格定義)"] --> GateA["品質閘門 A<br/>【設計與計畫審批】<br/>(Design & Plan Gate)"]
+    GateA -- "人類核准 (Approve)" --> B["2. Implementation<br/>(雙軌實作：TDD 測試與提交)"]
+    B --> GateB["品質閘門 B<br/>【持續整合與代碼審查】<br/>(CI & Code Review Gate)"]
+    GateB -- "自動/人工通過" --> C["3. Pre-Release<br/>(Canary、退版與監控)"]
+    C --> GateC["品質閘門 C<br/>【生產就緒度審查】<br/>(PRR Gate)"]
+    GateC -- "簽核與 TODO 補齊" --> D["4. Production Release<br/>(生產環境部署) 🚀"]
+
+    %% 節點樣式
+    style GateA fill:#f8d7da,stroke:#f5c2c7,stroke-width:2px,color:#000
+    style GateB fill:#f8d7da,stroke:#f5c2c7,stroke-width:2px,color:#000
+    style GateC fill:#d1e7dd,stroke:#badbcc,stroke-width:2px,color:#000
+    style D fill:#cff4fc,stroke:#b6effb,stroke-width:2px,color:#000
 ```
 
 ---
 
-### 階段 ①：需求與範疇定義 (Requirements & Scope)
-* **AI 任務**：理解原始業務需求，分析該需求對既有系統的衝擊，並明確界定影響範圍。
-* **監控檢核點 (Audit Checkpoints)**：
-  - [ ] **為什麼要做（Why）**：是否能用 1-2 句話清楚說明此變更要解決的問題，而非直接討論程式碼？
-  - [ ] **變更內容清單**：是否清晰條列了「新增、修改、移除」的功能點？如果有破壞性變更（Breaking Changes），是否被顯眼標註？
-  - [ ] **能力範圍界定**：是否辨識出需要建立或修改哪些模組/功能？
-  - [ ] **影響範圍限制**：是否列出受影響的程式碼目錄、API 或第三方依賴？
+## 3. Checkpoint & Gate Matrix (檢核與閘門矩陣)
 
----
-
-### 階段 ②：規格行為定義 (Specs & Behaviors - Spec-First)
-* **AI 任務**：將模糊的業務需求，轉化為具體、無歧義且**可測試**的行為規格書。
-* **監控檢核點 (Audit Checkpoints)**：
-  - [ ] **規範性語言**：規格描述是否嚴格使用「**應（SHALL）**」或「**必須（MUST）**」等字眼？
-  - [ ] **可驗證情境**：每一項需求是否至少有一個對應的**情境（Scenario）**？
-  - [ ] **標準化格式**：情境是否使用當下業界標準語法（如 BDD 的 `WHEN/THEN` 或 `GIVEN/WHEN/THEN`）？
-  - [ ] **規格即測試**：規格描述是否具備足夠的細節，使其可以直接作為測試案例的測試步驟？
-
----
-
-### 階段 ③：技術設計與決策 (Technical Design - Design-First)
-* **AI 任務**：在動工寫程式碼前，進行關鍵架構決策、分析替代方案並評估技術風險。
-* **監控檢核點 (Audit Checkpoints)**：
-  - [ ] **關鍵技術決策**：是否詳細記錄了技術選擇的理由？是否有考慮過其他替代方案（如：CSS Animation vs JS animation）？
-  - [ ] **可測試性考量（關鍵）**：AI 是否在設計階段就說明如何做測試？是否定義了 Mock 的邊界、依賴注入點，以及使用的測試框架？
-  - [ ] **風險與取捨**：是否條列了架構風險、效能瓶頸或瀏覽器相容性問題，並給出對應的緩解方案？
-  - [ ] **避免過度工程**：是否明確定義了「非目標（Non-goals）」，防止 AI 擅自實作未要求的 Nice-to-haves 功能？
-
----
-
-### 階段 ④：實作計畫與測試計畫 (Implementation & Test Planning)
-* **AI 任務**：將設計細化為任務清單，把測試設計（Test Cases）融入計畫中，並規劃微型的開發步驟。
-* **監控檢核點 (Audit Checkpoints)**：
-  - [ ] **任務與測試對照**：計畫中是否包含明確的**測試案例（Test Cases, 如 TC-xxx）**，且每個任務群組皆有對應的測試？
-  - [ ] **測試類型與優先順序**：是否標明測試類型（單元/整合/E2E）與重要程度（P0/P1）？
-  - [ ] **微步驟拆解**：每個任務是否被拆解為 2-5 分鐘的微步驟？
-  - [ ] **TDD 嵌入**：計畫是否包含 TDD 循環（紅色測試失敗 ➔ 綠色實作通過 ➔ 藍色重構 ➔ 提交）？
-
----
-
-### 階段 ⑤：驗證與人類核准門檻 (Verify & Gatekeeping)
-* **AI 任務**：在進入實作階段前，整理前述的規格、設計、計畫，並提交給團隊或主管進行確認。
-* **監控檢核點 (Audit Checkpoints)**：
-  - [ ] **雙重審查（同行審查）**：是否從「業務面（PM 視角）」與「技術面（架構師視角）」分別對計畫進行了完整評估？
-  - [ ] **人類核准閘門 (Human Approval Gate)**：是否保留了人類的最終決策權？（AI 在未取得人類確認核准前，**絕對不能**直接寫程式碼或進行 Apply）。
-
----
-
-### 階段 ⑥：實作與雙軌審查 (Implementation & Dual-Review)
-* **AI 任務**：在隔離的開發環境（如獨立分支或自管隔離環境）中，執行測試驅動開發（TDD）實作，並透過獨立的審查機制來確保代碼品質。
-* **監控檢核點 (Audit Checkpoints)**：
-  - [ ] **嚴格執行 TDD**：程式碼是否伴隨測試一起產生？是否確實先寫了會失敗的測試（RED），才撰寫通過的實作（GREEN）？
-  - [ ] **原子化提交 (Atomic Commits)**：提交紀錄（Commits）是否與實作計畫的任務高度對應，避免一次提交大量無解釋的程式碼？
-  - [ ] **解耦的雙軌審查 (Dual-Review)**：
-    * **規格審查**：審查程式碼是否 100% 滿足規格，有無漏寫或多寫？
-    * **品質審查**：審查代碼是否具備單一職責、可維護性、無障礙設計（A11y）、安全漏洞等。
-    * *註：寫程式碼的 AI 與審查的 AI 必須分開，避免自我陶醉。*
-
----
-
-### 階段 ⑦：交付與回顧 (Delivery & Retrospective)
-* **AI 任務**：在完成所有功能後，執行完整的防退化驗證，並撰寫開發回顧，總結經驗。
-* **監控檢核點 (Audit Checkpoints)**：
-  - [ ] **真實驗證證據**：宣稱完成時，AI 是否提供了**新鮮且完整的測試套件通過日誌（Test Logs）**，而非口頭宣稱？
-  - [ ] **回顧數據化**：回顧是否統計了 Diff 規模、Commit 數量與活躍工時？
-  - [ ] **Wins & Misses 分析**：是否誠實記錄了本次實作中的缺失（如：邊界案例漏測、語意混淆、環境污染）與成功之處？
-
----
-
-### 階段 ⑧：歸檔與全域記憶收斂 (Archive & Knowledge)
-* **AI 任務**：將本次變更累積的經驗與規格更新，沉澱至團隊的主規格書或全局記憶中。
-* **監控檢核點 (Audit Checkpoints)**：
-  - [ ] **規格書同步**：變更中修改的規格是否已經更新回主規格書中，避免規格文件過期？
-  - [ ] **長期學習項目（Memory）**：本次開發中學到的教訓（如 A11y 盲點、特定的 JSDOM 測試配置問題），是否被提煉成規則寫入全域知識庫（如 `CLAUDE.md` 或團隊 memo）中，供未來開發參考？
-
----
-
-## 3. 團隊評估卡 (AI PR Audit Rubric)
-
-當您收到 AI 產出的 Pull Request 時，可以使用此表進行快速稽核：
-
-| 評估維度 | 優秀 (3分) | 合格 (2分) | 不合格 (1分) | 評分 |
+| 開發階段 | 核心原則 | AI & 開發者關鍵檢核項目 (Checkpoints) | 🎯 品質閘門與稽核機制 (Quality Gate & Audit) | 實作建議 (OpenSpec / 其他 AI 工具) |
 | :--- | :--- | :--- | :--- | :--- |
-| **設計先行** | 有獨立的變更動機與技術設計文件，詳細列出決策理由 | 有簡短的修改計畫，但技術決策含糊 | 直接給程式碼，沒有說明設計思維與為什麼 | |
-| **測試覆蓋** | 實作伴隨測試（TDD），有明確的測試案例對應與步驟 | 有手動測試說明或事後補測試，但有些關鍵邏輯未測 | 完全沒有新增測試，或僅有 trivial 的空測試 | |
-| **程式品質** | 代碼與樣式完美解耦，考慮了無障礙（A11y）與邊界狀況 | 代碼功能正常，但存在一些小瑕疵（如全域 Mock 污染） | 代碼混亂、職責不分，容易引發 Regression | |
-| **流程可追溯** | 每個任務有對應的原子提交與獨立審查紀錄 | 提交紀錄較為混亂，但勉強能對應功能點 | 巨大的一次性提交，無從得知 AI 的開發歷程 | |
+| **1. Design & Specs**<br/>*(設計與規格期)* | **Design-First** & **Testable Specs** | - [ ] **1.1 Define Motivation**: 釐清變更本質 (Why) 與業務價值，避免無動機修改。<br/>- [ ] **1.2 Bound Non-goals**: 界定非目標，防範 AI 過度工程 (Over-engineering)。<br/>- [ ] **1.3 Evaluate Trade-offs**: 記錄技術選型與替代方案的取捨理由。<br/>- [ ] **1.4 BDD Spec Definition**: 規格具備明確的輸入與預期結果（如 `WHEN/THEN` 格式）。 | 🛑 **品質閘門 A：Design & Plan Gate**<br/>*進入編碼前的最終卡關*<br/>**【稽核方式】**：人類工程師/PM 審查 AI 依據需求產出之技術設計與實作計畫，評估需求覆蓋率。<br/>**【通過條件】**：人類手動簽章 (Sign-off) 授權 AI 開始編碼。 | - **OpenSpec**: 撰寫 `proposal`, `design`, `plan` 後，由人類在 `verify.md` 勾選核准。<br/>- **其他工具**: 進入 Coding 前，人類需先 Review AI 整理的實作步驟與設計。 |
+| **2. Implementation**<br/>*(實作編碼期)* | **Dual-Track Implementation** | - [ ] **2.1 Test-Driven Development (TDD)**：程式碼與自動化測試同步交付（單元/整合/E2E）。<br/>- [ ] **2.2 Atomic Commits**: 每次提交為原子化小步改動，Commit 訊息應清晰表達。<br/>- [ ] **2.3 Assert Valid Mocking**: 審查測試本身的 Assert，確保測試真實有效，防範無效 Mock。 | 🛑 **品質閘門 B：CI & Code Review Gate**<br/>*合併至主線前的把關*<br/>**【稽核方式】**：<br/>1. **Automated CI**: 自動跑過完整測試套件並確認測試覆蓋率符合門檻。<br/>2. **Peer Review**: 由人類工程師進行 Code Review (CR)。<br/>**【通過條件】**：CI Green 綠燈且獲得至少 1 名人類 Approve。 | - **OpenSpec**: SDLC 執行器於 `apply` 階段自動運行 TDD 與驗證。<br/>- **其他工具**: 強制執行 GitHub/GitLab PR 流程，無人類核准與 CI 綠燈禁止 Bypass 合併。 |
+| **3. Pre-Release**<br/>*(發布準備期)* | **SRE Guardrails** | - [ ] **3.1 Safe Deployment**: 具備 Canary 部署流量比例或功能開關 (Feature Toggle) 降級計畫。<br/>- [ ] **3.2 Rollback Plan**: 具備清晰的系統退版具體執行步驟與預估 MTTR。<br/>- [ ] **3.3 Golden Signals Telemetry**: 針對修改組件（DB, API, Cache）設定延遲、流量、錯誤的監控建議。<br/>- [ ] **3.4 Honesty Guardrails**: 未知項目（PR 連結、DBA 簽章）強制 TODO 留空，上線前手動確認，嚴禁 AI 捏造。 | 🟢 **品質閘門 C：PRR Gate (Production Readiness)**<br/>*發布生產環境前的最後把關*<br/>**【稽核方式】**：審查生產環境準備度評估 (PRR) 報告，對照 Canary、Rollback 步驟與維運監控指標。<br/>**【通過條件】**：PRR 文件中的所有 `TODO` 項目與外部審核（如 DBA 簽章）已由人類工程師手動補齊。 | - **OpenSpec**: 於 `retrospective` 階段自動產生並由人工補齊 `production-readiness-review.md`。<br/>- **其他工具**: 上線前對照 PRR 範本手動檢核並產出，完成發布前的 SRE 簽核與 Checklist。 |
 
-* **建議標準**：任何 PR 的總分必須達到 **8 分以上**，且沒有任何「不合格 (1分)」項目，方可合入主線。
+---
+
+## 4. Release Rubric (發布評估卡)
+
+| 評估維度 (Dimensions) | 優秀 (3分) | 合格 (2分) | 不合格 (1分) |
+| :--- | :--- | :--- | :--- |
+| **Design-First** | 有獨立的變更動機與技術設計，詳細列出決策理由與取捨 (Trade-offs) | 有簡短的修改計畫，但技術決策含糊 | 直接給程式碼，沒有說明設計思維與變更動機 |
+| **Test Coverage** | 實作伴隨測試，有明確的測試案例對應與步驟 | 有手動測試說明或事後補測試，但有些關鍵邏輯未測 | 完全沒有新增測試，或僅有 trivial 的空測試 |
+| **Code Quality** | 代碼與樣式完美解耦，考慮了無障礙 (A11y) 與邊界狀況 | 代碼功能正常，長度與命名合理，但存在一些小瑕疵 | 代碼混亂、職責不分，容易引發 Regression |
+| **Traceability** | 有清晰的提交紀錄與對應的代碼審查 (Code Review) 紀錄 | 提交紀錄較為簡略，但勉強能對應功能點 | 巨大的一次性提交，無從得知變更歷程 |
+| **Production Readiness (PRR)**| 自動生成 PRR，Canary 與黃金指標清晰，未知項目標記 TODO | 有 PRR 文件但內容不齊，或有部分硬塞的捏造資料 | 沒有提供 PRR 文件，或直接發布未經審核之項目 |
+
+* **Release Criteria (合入與發布標準)**：上述五個維度皆應達到合格以上，且不得有任何一項「完全缺失/捏造假資料（違反誠實原則）」，方可核准上線。

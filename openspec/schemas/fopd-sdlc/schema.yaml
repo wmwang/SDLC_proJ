@@ -235,11 +235,11 @@ artifacts:
       - plan
 
   - id: retrospective
-    generates: retrospective.md
+    generates: "{retrospective.md,production-readiness-review.md}"
     description: >
-      實作後的回顧文件，記錄成果、缺失、計畫偏差與長期學習候選。
+      實作後的回顧與生產環境準備度評估（PRR）。
+      產生 retrospective.md 記錄成果與缺失，並產生 production-readiness-review.md 做為上線前的維運審核依據。
       PRECHECK：commit count > 0 且 plan.md 中有已勾選的任務（`- [x]`）。
-      若 PRECHECK 未通過，停止並告知使用者：必須先完成至少一項實作任務。
     template: retrospective.md
     instruction: |
       PRECHECK — 在撰寫回顧之前，確認以下條件：
@@ -247,34 +247,34 @@ artifacts:
       2. plan.md 中至少有一個 `- [x]` 已勾選的任務
       如果 PRECHECK 未通過，停止並告知使用者必須先完成實作。
 
-      使用 template（`openspec/schemas/fopd-sdlc/templates/retrospective.md`）
-      作為結構框架，填入以下內容：
+      在此階段，你必須同時產生回顧文件 retrospective.md 與生產環境準備度評估 production-readiness-review.md。
 
-      1. **證據（§0）**：
-         - 執行 `git log --oneline <base>..HEAD` 取得 commit 鏈
-         - 執行 `git diff --stat <base>..HEAD` 取得 diff 規模
-         - 計算 plan.md 中 `- [x]` 的數量
-         - 列出測試覆蓋率信號（若有）
+      【第一部分：產出 retrospective.md】
+      使用 template（`openspec/schemas/fopd-sdlc/templates/retrospective.md`）作為結構框架，填入以下內容：
+      1. 證據（§0）：列出 commit 鏈、diff 規模、已勾選任務數與測試覆蓋率。
+      2. 成果（§1）：列出本次實作的成功之處與證據引用。
+      3. 缺失（§2）：記錄阻擋性、痛點與小問題。
+      4. 計畫偏差（§3）：記錄與 plan.md 相比的偏差及原因。
+      5. 合規性（§4）：檢查必要技能是否有使用，若跳過需說明。
+      6. PR 評估自評（§5）：依據設計先行、測試覆蓋、程式品質與可追溯性自評。
+      7. 意外發現（§6）與長期學習候選（§7）。
 
-      2. **成果（§1）**：列出本次實作的成功之處，每項附上
-         證據引用（commit hash、檔案、測試名稱）
-
-      3. **缺失（§2）**：分為 🔴 阻擋性、🟡 痛點、📌 小問題，
-         每項附上證據。若無缺失，寫「無」
-
-      4. **計畫偏差（§3）**：對比 plan.md 與實際執行，
-         記錄哪些任務有偏差及原因
-
-      5. **技能/流程合規性（§4）**：逐項檢查 schema 要求的
-         Superpowers 技能是否都有使用。跳過的技能必須
-         在「刻意跳過的技能」子區段說明原因與預防方案
-
-      6. **PR 評估自評（§5）**：依據設計先行、測試覆蓋、程式品質與流程可追溯四個維度客觀自評（1-3 分），並條列具體佐證與分數。
-
-      7. **意外發現（§6）**：原本假設錯誤的地方
-
-      8. **長期學習候選（§7）**：用 `- [ ]` 核取方塊列出
-         可提升至 memory / CLAUDE.md / schema 的學習項目
+      【第二部分：產出 production-readiness-review.md】
+      讀取範本（`openspec/schemas/fopd-sdlc/templates/prr.md`），填入以下欄位，生成上線前的審核文件：
+      1. 發布概覽：
+         - 「產品名稱」：由 proposal.md 提取。
+         - 「發布版本」：由目前分支名稱（如 release/vX.Y.Z）或 PR 標題提取。若無則留空。
+         - 「核心功能」：由 proposal.md 提取並精煉。
+         - 「受影響的模組化架構」與「外部相關性變更」：由 design.md 提取。
+      2. 部署策略與退版計畫：
+         - 讀取 design.md 的「遷移計畫與回滾策略」，將 Canary 部署比例與步驟，以及 Feature Toggle / Rollback 步驟填入對應表格。
+      3. 系統觀測與異常回應 (Golden Signals)：
+         - 根據本次變更所修改的組件（例如：若修改了資料庫，保留並突顯 Database 慢查詢與 IOPS；若修改快取，突顯 Redis 命中率與記憶體；若修改應用服務，突顯 API Latency 與 Exception Rate）。
+      4. 測試覆蓋與品質保證：
+         - 從 plan.md 提取測試情境，並將通過的項目對應填入。
+      5. ⚠️ 未知與人工審批資訊的處理原則（核心）：
+         - 對於「PR Review 審批連結」、「DB Migration 審核簽章與 Ticket」、「Canary 實際觀察日期」、「維運手冊連結」等在開發期未知或需要外部人工介入的項目，AI 絕對不得捏造數據。
+         - 必須將狀態設為 `[ ] TODO: 待手動補充` 或 `[ ] 待人工確認`，並在佐證資料欄位保留引導文字（例如 `[請提供相關 Pull Request 連結]`），提示開發者在上線前手動補齊。
     requires:
       - verify
 
